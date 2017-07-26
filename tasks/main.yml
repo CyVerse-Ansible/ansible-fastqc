@@ -1,0 +1,40 @@
+---
+
+- name: Gather OS specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml"
+    - "{{ ansible_distribution }}.yml"
+
+- name: Install Java
+  package:
+    name: "{{ JAVA }}"
+    state: present
+
+- name: Install unzip
+  package:
+    name: unzip
+    state: present
+
+- name: Download FastQC
+  get_url:
+    url: "http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v{{ VERSION }}.zip"
+    dest: "/home/{{ ATMOUSERNAME }}/fastqc.zip"
+
+- name: Unarchive FastQC
+  unarchive:
+    src: "/home/{{ ATMOUSERNAME }}/fastqc.zip"
+    dest: "/home/{{ ATMOUSERNAME }}"
+    remote_src: yes
+
+- name: Make FastQC executable
+  file:
+    path: "/home/{{ ATMOUSERNAME }}/FastQC/fastqc"
+    mode: 0755
+
+- name: Cleanup temporary files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "/home/{{ ATMOUSERNAME }}/fastqc.zip"
